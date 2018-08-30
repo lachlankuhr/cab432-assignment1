@@ -1,0 +1,44 @@
+extends layout
+
+block content
+  doctype html
+  html
+    head
+      meta(name='viewport', content='initial-scale=1.0, user-scalable=no')
+      meta(charset='utf-8')
+      title SongKick Maps
+      link(rel="stylesheet", href='/stylesheets/style.css')
+
+    body
+      #header
+        Search bar located here
+      #sidebar
+        form(method='GET')
+          | SongKick Username: 
+          br
+          input(name='username', type='text')
+          br
+      #map
+      script.
+        function initMap() {
+        let data = !{JSON.stringify(locations)};
+
+        var myLatLng = {lat: 30, lng: 31};
+        var map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 2,
+        center: myLatLng
+        });
+        for (var i = 0; i < data.length; i++) {
+
+          var marker = new google.maps.Marker({
+            position: {lat: data[i].lat, lng: data[i].lng},
+            map: map,
+            title: data[i].city
+          });
+
+          marker.addListener('click', function() {
+            console.log('Hello');
+          });
+        }
+        }
+      script(async="", defer="", src='https://maps.googleapis.com/maps/api/js?key=AIzaSyA9-HHJhzau_xzMF_1rMQm3YiC0xDvzKxU&callback=initMap')
