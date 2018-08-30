@@ -1,1 +1,18 @@
-block content
+doctype html
+html
+    head
+        block head
+        block links
+    body 
+        #container
+            block search
+            .row.content
+                #sidebar.col-3(scrolltop='10')
+                    .row 
+                        h1 Events
+                    each event in events
+                        +drawevent(event)
+                #map.col-9
+                    block map
+            block footer
+

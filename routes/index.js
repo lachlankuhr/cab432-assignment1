@@ -39,7 +39,9 @@ router.get('/', function(request, response, next) {
 
       var locations = _.chain(events)
         .map(function(event) {
-          return event.location;
+          let location = event.location;
+          location.venueId = event.venue.id;
+          return location;
         }).uniq(function(location) {
           return location.city;
         })

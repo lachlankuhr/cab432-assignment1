@@ -1,44 +1,90 @@
 extends layout
 
-block content
-  doctype html
-  html
-    head
-      meta(name='viewport', content='initial-scale=1.0, user-scalable=no')
-      meta(charset='utf-8')
-      title SongKick Maps
-      link(rel="stylesheet", href='/stylesheets/style.css')
+mixin drawevent(event)
+  - var venue = event.venue.id;
+  div(class='row event' class=venue)
+      .col-12
+        .row
+          .col-9
+            = event.performance[0].displayName
+          .col-3
+            | TBD
+        .row
+          = event.location.city
+        .row
+          .col-6
+            = event.start.date
+          .col-6
+            a(href='#') More information.
 
-    body
-      #header
-        Search bar located here
-      #sidebar
-        form(method='GET')
-          | SongKick Username: 
-          br
-          input(name='username', type='text')
-          br
-      #map
-      script.
-        function initMap() {
-        let data = !{JSON.stringify(locations)};
+block head
+  meta(name='viewport', content='initial-scale=1.0, user-scalable=no')
+  meta(charset='utf-8')
+  title SongKick Maps
 
-        var myLatLng = {lat: 30, lng: 31};
-        var map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 2,
-        center: myLatLng
-        });
-        for (var i = 0; i < data.length; i++) {
+block links
+  link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css', integrity='sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO', crossorigin='anonymous')
+  script(src='https://code.jquery.com/jquery-3.3.1.slim.min.js', integrity='sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo', crossorigin='anonymous')
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js', integrity='sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49', crossorigin='anonymous')
+  script(src='https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js', integrity='sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy', crossorigin='anonymous')
+  link(rel='stylesheet', href='/stylesheets/style.css')
 
+
+block search
+  form(method='get')
+    #search.row
+      .col-3
+        | SongKick Username: <br>
+        input(type='text' name='username')
+      .col-3
+
+block map 
+  script.
+    function initMap() {
+      let locations = !{JSON.stringify(locations)};
+
+      var myLatLng = {lat: 30, lng: 31};
+      var map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 2,
+      center: myLatLng
+      });
+      let markers = [];
+      for (var i = 0; i < locations.length; i++) {
           var marker = new google.maps.Marker({
-            position: {lat: data[i].lat, lng: data[i].lng},
-            map: map,
-            title: data[i].city
+              position: {lat: locations[i].lat, lng: locations[i].lng},
+              map: map,
+              title: locations[i].city
           });
 
           marker.addListener('click', function() {
-            console.log('Hello');
+              console.log('Hello');
           });
-        }
-        }
-      script(async="", defer="", src='https://maps.googleapis.com/maps/api/js?key=AIzaSyA9-HHJhzau_xzMF_1rMQm3YiC0xDvzKxU&callback=initMap')
+          
+          markers.push(marker);
+
+          marker.venueId = locations[i].venueId;
+      }
+
+      map.addListener('bounds_changed', function() {
+        console.log('Hi');
+          let events = document.querySelectorAll('#sidebar > .event');
+          for (var event = 0; event < events.length; event++) {
+              events[event].style.display = "none";
+          }
+          for (var marker = 0; marker < markers.length; marker++){
+              if( map.getBounds().contains(markers[marker].getPosition()) ){
+                  let inViewVenues = document.getElementsByClassName(markers[marker].venueId);
+                  for (var venues = 0; venues < inViewVenues.length; venues++) {
+                    inViewVenues[venues].style.display = "block";
+                  }
+              }
+          }
+      });
+
+      }
+  script(async="", defer="", src='https://maps.googleapis.com/maps/api/js?key=AIzaSyA9-HHJhzau_xzMF_1rMQm3YiC0xDvzKxU&callback=initMap')
+
+block footer
+  #footer !{JSON.stringify(locations)}
+
+    
