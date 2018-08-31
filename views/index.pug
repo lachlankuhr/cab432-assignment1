@@ -43,10 +43,10 @@ block map
     function initMap() {
       let locations = !{JSON.stringify(locations)};
 
-      var myLatLng = {lat: 30, lng: 31};
+      var myLatLng = {lat: 0, lng: 15};
       var map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 2,
-      center: myLatLng
+        zoom: 3,
+        center: myLatLng
       });
       let markers = [];
       for (var i = 0; i < locations.length; i++) {
@@ -85,6 +85,17 @@ block map
   script(async="", defer="", src='https://maps.googleapis.com/maps/api/js?key=AIzaSyA9-HHJhzau_xzMF_1rMQm3YiC0xDvzKxU&callback=initMap')
 
 block footer
-  #footer !{JSON.stringify(locations)}
+  button.btn.btn-info.btn-lg(type='button', data-toggle='modal', data-target='#myModal') Open Large Modal
+  #myModal.modal.fade(role='dialog')
+    .modal-dialog.modal-lg
+      .modal-content
+        .modal-header
+          button.close(type='button', data-dismiss='modal') ×
+          h4.modal-title Modal Header
+        .modal-body
+          p This is a large modal.
+        .modal-footer
+          button.btn.btn-default(type='button', data-dismiss='modal') Close
+
 
     

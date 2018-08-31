@@ -1,20 +1,15 @@
 // Module for Songkick requests
 // Requires
 let fs = require('fs');
-let nconf = require('nconf');
 let HTTPError = require('node-http-error');
 let async = require("async");
 let request = require('request');
 let _ = require("underscore");
 
 
-// Config files
-nconf.argv()
-    .env()
-    .file({ file: 'config.json' });
-
 // Constructor
 function Songkick(apiKey) {
+    Songkick.prototype.apiKey = apiKey;
 }
 
 /* 
@@ -22,7 +17,7 @@ function Songkick(apiKey) {
 * Loading is making the REST request
 */
 loadTrackedArtists = function(username, callback) {
-    request("http://api.songkick.com/api/3.0/users/" + username + "/artists/tracked.json?apikey=" + nconf.get("songkick.apikey") + "&per_page=all", function(error, response, body) {
+    request("http://api.songkick.com/api/3.0/users/" + username + "/artists/tracked.json?apikey=" + Songkick.prototype.apiKey + "&per_page=all", function(error, response, body) {
     // Handle the error
     if (error) {
         return callback(error);
@@ -44,7 +39,7 @@ loadTrackedArtists = function(username, callback) {
 * Loading is making the REST request
 */ 
 loadArtistEvents = function(artist, page, callback) {
-    request("http://api.songkick.com/api/3.0/artists/" + artist.id + "/calendar.json?apikey=" + nconf.get("songkick.apikey") + "&per_page=50&page=" + page, function(error, response, body) {
+    request("http://api.songkick.com/api/3.0/artists/" + artist.id + "/calendar.json?apikey=" + Songkick.prototype.apiKey + "&per_page=50&page=" + page, function(error, response, body) {
         if (error) {
             return callback(error);
         }
