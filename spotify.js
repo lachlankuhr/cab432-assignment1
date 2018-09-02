@@ -1,7 +1,24 @@
 let SpotifyWebApi = require('spotify-web-api-node');
+
+// Constructor
+function Spotify(client, secret) {
+    Spotify.prototype.client = client;
+    Spotify.prototype.secret = secret;
+}
  
 // credentials are optional
 var spotifyApi = new SpotifyWebApi({
-  clientId: 'd143b78680674c16aab6532f02014155',
-  clientSecret: 'e9d3097b608f479095a3cf0d2dd1dd2f'
+  clientId: Spotify.prototype.client,
+  clientSecret: Spotify.prototype.secret
 });
+
+Spotify.prototype.getArtistByName = function(artistName) {
+    spotifyApi.searchArtists(artistName)
+    .then(function(data) {
+        console.log(data.body);
+    }, function(err) {
+        console.log(err);
+    });
+}
+
+module.exports = Spotify;

@@ -2,20 +2,24 @@ extends layout
 
 mixin drawevent(event)
   - var venue = event.venue.id;
-  div(class='row event' class=venue)
+  - var eventId = event.id;
+  - var idDate = eventId + 'Date';
+  - var idButton = eventId + 'Button';
+  - var idArtist = eventId + 'Artist';
+  div(class='row event' class=venue id=eventId)
       .col-12
         .row
-          .col-9
+          div(class="col-9 artist" id=idArtist)
             = event.performance[0].displayName
           .col-3
             | TBD
         .row
           = event.location.city
         .row
-          .col-6
+          div(class="date col-6" id=idDate)
             = event.start.date
           .col-6
-            a(href='#') More information.
+            button.btn.btn-info.btn-sm.button(type='button', data-toggle='modal', data-target='#myModal' id=idButton) Open Large Modal
 
 block head
   meta(name='viewport', content='initial-scale=1.0, user-scalable=no')
@@ -24,10 +28,15 @@ block head
 
 block links
   link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css', integrity='sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO', crossorigin='anonymous')
-  script(src='https://code.jquery.com/jquery-3.3.1.slim.min.js', integrity='sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo', crossorigin='anonymous')
+  script(src='https://code.jquery.com/jquery-3.3.1.js', integrity='sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60', crossorigin='anonymous')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js', integrity='sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49', crossorigin='anonymous')
   script(src='https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js', integrity='sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy', crossorigin='anonymous')
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment-range/4.0.1/moment-range.js"></script>
   link(rel='stylesheet', href='/stylesheets/style.css')
+  script(src="/javascripts/script.js") 
 
 
 block search
@@ -37,6 +46,17 @@ block search
         | SongKick Username: <br>
         input(type='text' name='username')
       .col-3
+        | Choose a date range: <br>
+        input(type='text', id='daterange' name='daterange', value='01/01/2018 - 12/30/2019')
+        script.
+          $(function() {
+            $('input[name="daterange"]').daterangepicker({
+                opens: 'right'
+              }, function(start, end, label) {
+                google.maps.event.trigger(map, 'bounds_changed')
+              });
+          });
+
 
 block map 
   script.
@@ -48,52 +68,38 @@ block map
         zoom: 3,
         center: myLatLng
       });
+      // Get the map to client side
+      getMap(map);
       let markers = [];
-      for (var i = 0; i < locations.length; i++) {
-          var marker = new google.maps.Marker({
-              position: {lat: locations[i].lat, lng: locations[i].lng},
-              map: map,
-              title: locations[i].city
-          });
+      // Add the markers to the map
+      addMarkers(map, markers, locations);
+      // Add the listener to update side bar as bounds change
+      mapListener(map, markers);
+      // Get the markers
+      getMarkers(markers);
 
-          marker.addListener('click', function() {
-              console.log('Hello');
-          });
-          
-          markers.push(marker);
+      var centerControlDiv = document.createElement('div');
+      var centerControl = new CenterControl(centerControlDiv, map);
 
-          marker.venueId = locations[i].venueId;
-      }
-
-      map.addListener('bounds_changed', function() {
-        console.log('Hi');
-          let events = document.querySelectorAll('#sidebar > .event');
-          for (var event = 0; event < events.length; event++) {
-              events[event].style.display = "none";
-          }
-          for (var marker = 0; marker < markers.length; marker++){
-              if( map.getBounds().contains(markers[marker].getPosition()) ){
-                  let inViewVenues = document.getElementsByClassName(markers[marker].venueId);
-                  for (var venues = 0; venues < inViewVenues.length; venues++) {
-                    inViewVenues[venues].style.display = "block";
-                  }
-              }
-          }
-      });
+      centerControlDiv.index = 1;
+      map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerControlDiv);
 
       }
   script(async="", defer="", src='https://maps.googleapis.com/maps/api/js?key=AIzaSyA9-HHJhzau_xzMF_1rMQm3YiC0xDvzKxU&callback=initMap')
 
 block footer
-  button.btn.btn-info.btn-lg(type='button', data-toggle='modal', data-target='#myModal') Open Large Modal
   #myModal.modal.fade(role='dialog')
     .modal-dialog.modal-lg
       .modal-content
         .modal-header
           button.close(type='button', data-dismiss='modal') ×
-          h4.modal-title Modal Header
+          h4#modelTitle.modal-title 
         .modal-body
-          p This is a large modal.
+          a#urlLink(href='#') Link
+          br
+          | Similar artists: 
+          #simArt
+            | Test
         .modal-footer
           button.btn.btn-default(type='button', data-dismiss='modal') Close
 

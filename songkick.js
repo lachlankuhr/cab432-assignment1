@@ -1,6 +1,5 @@
 // Module for Songkick requests
 // Requires
-let fs = require('fs');
 let HTTPError = require('node-http-error');
 let async = require("async");
 let request = require('request');
@@ -47,6 +46,21 @@ loadArtistEvents = function(artist, page, callback) {
             return callback(new HTTPError(response.statusCode, response.statusMessage), null);
         }
         callback(null, JSON.parse(body), new Date());
+    });
+}
+
+/*
+* Gets the event details
+*/
+Songkick.prototype.getEventDetails = function(eventId, callback) {
+    request("https://api.songkick.com/api/3.0/events/" + eventId + ".json?apikey=" + Songkick.prototype.apiKey, function(error, response, body) {
+        if (error) {
+            return callback(error);
+        }
+        if (response.statusCode != 200) {
+            return callback(new HTTPError(response.statusCode, response.statusMessage), null);
+        }
+        callback(null, JSON.parse(body));
     });
 }
 

@@ -3,6 +3,7 @@ let express = require('express');
 var url = require('url');
 let router = express.Router();
 let Songkick = require('./../songkick.js');
+let LastFm = require('./../lastfm.js');
 let fs = require('fs');
 let nconf = require('nconf');
 var _ = require("underscore");
@@ -12,6 +13,28 @@ var _ = require("underscore");
 nconf.argv()
     .env()
     .file({ file: 'config.json' });
+
+router.get('/events', function(request, response, next) {
+  let eventId = request.query.eventId;
+  let songkick = new Songkick(nconf.get("songkick.apikey"));
+  songkick.getEventDetails(eventId, function(error, data) {
+    response.send(data.resultsPage.results[0].event);
+  });
+});
+
+router.get('/populate', function(request, response, next) {
+  let artist = request.query.artist;
+  var lf = new LastFm(nconf.get('last.fm.apikey'));
+  lf.getSimilarArtists(artist, function (err, data) {
+      let artists = data.artist;
+      // Trim the data before sending to client side.
+      if (artists.length > 15) {
+        artists.length = 15;
+      } 
+      console.log(data);
+      response.send(artists);
+  });
+});
 
 /* GET home page. */
 router.get('/', function(request, response, next) {
@@ -57,7 +80,6 @@ router.get('/', function(request, response, next) {
         .uniq()
         .sortBy()
         .value();
-
       response.render("index", {
         artists: artists,
         events: events,
