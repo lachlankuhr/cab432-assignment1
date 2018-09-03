@@ -158,9 +158,38 @@ function CenterControl(controlDiv, map) {
             type: 'GET',
             url: '/nearby/?lat=' + lat + '&lng=' + lng,
             success: function(response) {
+                console.log(response);
                 addMarkers(map, markers, response.locations);
+                let events = response.events;
+                for (let i = 0; i < events.length; i++) {
+                    GenerateEventSidebar(events[i]);
+                }
             }
         });
     });
 }
-
+ // TODO: UPDATE THIS WHEN THE PUG MIXIN IS UPDATED. 
+function GenerateEventSidebar(event) {
+    let venueId = event.venue.id;
+    let eventId = event.id;
+    let dateId = eventId + 'Date';
+    let buttonId = eventId + 'Button';
+    let artistId = eventId + 'Artist';
+    eventHtml = 
+    `<div class="row event ` + venueId + `" id="` + eventId + `">
+        <div class="col-12">
+            <div class="row">
+                <div class="col-9 artist" id="` + artistId + `">` +
+                    event.performance[0].displayName + 
+                `</div>
+                <div class="col-3"> TBD </div>
+            </div>
+            <div class="row">` + event.location.city + `</div>
+            <div class="row">
+                <div class="date col-6" id="` + dateId + `">` + event.start.date + `</div>
+                <div class="col-6"><button class="btn btn-info btn-sm button" type="button" data-toggle="modal" data-target="#eventDetails" id="` + buttonId + `">Open Large Modal</button></div>
+            </div>
+        </div>
+    </div>`;
+    $('#sidebar').append(eventHtml);
+}

@@ -65,13 +65,19 @@ Songkick.prototype.loadMetroArea = function(lat, lng, callback) {
  */
 Songkick.prototype.loadEventsInMetroArea = function(locationId, callback) {
     request("https://api.songkick.com/api/3.0/metro_areas/" + locationId + "/calendar.json?apikey=" + Songkick.prototype.apiKey + "&per_page=50", function(error, response, body) {
-        let events = JSON.parse(body).resultsPage.results.event;
-        console.log(body);
+        let eventsJson = JSON.parse(body).resultsPage.results.event;
+        // GET RID OF ANY EVENTS WITH A VENUE ID OF NULL
+        // FUCKING SONGKICK!! WWHYYYY???????????????????????????
+        let events = _.filter(eventsJson, function(event) {
+            return event.venue.id != null;
+        })
         let locations = _.chain(events)
             .map(function(event) {
                 let location = event.location;
                 location.venueId = event.venue.id;
                 return location;
+            }).filter(function(location) {
+                return location.venueId != null;
             }).uniq(function(location) {
                 return location.city;
             })
