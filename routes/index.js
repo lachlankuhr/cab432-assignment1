@@ -14,6 +14,23 @@ nconf.argv()
     .env()
     .file({ file: 'config.json' });
 
+// Get the nearby events
+// For use in AJAX calls 
+router.get('/nearby', function(request, response, next) {
+  let lat = request.query.lat;
+  let lng = request.query.lng;
+  let songkick = new Songkick(nconf.get("songkick.apikey"));
+  songkick.loadMetroArea(lat, lng, function(error, locationId) {
+    songkick.loadEventsInMetroArea(locationId, function(error, locations, events) {
+      let nearby = {'locations' : locations, 'events' : events};
+      response.send(nearby);
+    });
+  });
+  
+});
+
+// Get event details for a particular event
+// For use in AJAX calls 
 router.get('/events', function(request, response, next) {
   let eventId = request.query.eventId;
   let songkick = new Songkick(nconf.get("songkick.apikey"));
@@ -22,6 +39,8 @@ router.get('/events', function(request, response, next) {
   });
 });
 
+// Get the similar artists for a particular artist 
+// For use in AJAX calls 
 router.get('/populate', function(request, response, next) {
   let artist = request.query.artist;
   var lf = new LastFm(nconf.get('last.fm.apikey'));
@@ -79,7 +98,7 @@ router.get('/', function(request, response, next) {
         .uniq()
         .sortBy()
         .value();
-        
+
       response.render("index", {
         artists: artists,
         events: events,

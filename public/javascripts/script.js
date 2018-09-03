@@ -152,6 +152,15 @@ function CenterControl(controlDiv, map) {
 
     // Setup the click event listeners: simply set the map to Chicago
     controlUI.addEventListener('click', function() {
-      $('#searchArea').click();
+        let lat = map.getCenter().lat();
+        let lng = map.getCenter().lng();
+        $.ajax({
+            type: 'GET',
+            url: '/nearby/?lat=' + lat + '&lng=' + lng,
+            success: function(response) {
+                addMarkers(map, markers, response.locations);
+            }
+        });
     });
 }
+
