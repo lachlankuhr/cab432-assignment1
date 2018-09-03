@@ -18,7 +18,7 @@ router.get('/events', function(request, response, next) {
   let eventId = request.query.eventId;
   let songkick = new Songkick(nconf.get("songkick.apikey"));
   songkick.getEventDetails(eventId, function(error, data) {
-    response.send(data.resultsPage.results[0].event);
+    response.send(data.resultsPage.results.event);
   });
 });
 
@@ -31,7 +31,6 @@ router.get('/populate', function(request, response, next) {
       if (artists.length > 15) {
         artists.length = 15;
       } 
-      console.log(data);
       response.send(artists);
   });
 });
@@ -80,6 +79,7 @@ router.get('/', function(request, response, next) {
         .uniq()
         .sortBy()
         .value();
+        
       response.render("index", {
         artists: artists,
         events: events,

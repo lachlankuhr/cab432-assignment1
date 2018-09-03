@@ -50,6 +50,26 @@ loadArtistEvents = function(artist, page, callback) {
 }
 
 /*
+ * Load metro areas close to a {lat, long}. 
+ */
+ loadMetroAreas = function(lat, long, callback) {
+    request("https://api.songkick.com/api/3.0/search/locations.json?location=geo:" + lat + "," + lng + "&apikey=" + Songkick.prototype.apiKey + "&per_page=50", function(error, response, body) {
+        let events = body.resultsPage.results.event;
+        var locations = _.chain(events)
+            .map(function(event) {
+            let location = event.location;
+            location.venueId = event.venue.id;
+            return location;
+            }).uniq(function(location) {
+            return location.city;
+            })
+            .sortBy(function(location) {
+            return location.city;
+            }).value();
+    });
+ }
+
+/*
 * Gets the event details
 */
 Songkick.prototype.getEventDetails = function(eventId, callback) {

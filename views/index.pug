@@ -19,7 +19,7 @@ mixin drawevent(event)
           div(class="date col-6" id=idDate)
             = event.start.date
           .col-6
-            button.btn.btn-info.btn-sm.button(type='button', data-toggle='modal', data-target='#myModal' id=idButton) Open Large Modal
+            button.btn.btn-info.btn-sm.button(type='button', data-toggle='modal', data-target='#eventDetails' id=idButton) Open Large Modal
 
 block head
   meta(name='viewport', content='initial-scale=1.0, user-scalable=no')
@@ -40,22 +40,22 @@ block links
 
 
 block search
-  form(method='get')
-    #search.row
-      .col-3
-        | SongKick Username: <br>
-        input(type='text' name='username')
-      .col-3
-        | Choose a date range: <br>
-        input(type='text', id='daterange' name='daterange', value='01/01/2018 - 12/30/2019')
-        script.
-          $(function() {
-            $('input[name="daterange"]').daterangepicker({
-                opens: 'right'
-              }, function(start, end, label) {
-                google.maps.event.trigger(map, 'bounds_changed')
-              });
-          });
+  #search.row
+    .col-3
+      form(method='get')
+            | SongKick Username: <br>
+            input(type='text' name='username')
+    .col-3
+      | Choose a date range: <br>
+      input(type='text', id='daterange' name='daterange', value='01/01/2018 - 12/30/2019')
+      script.
+        $(function() {
+          $('input[name="daterange"]').daterangepicker({
+              opens: 'right'
+            }, function(start, end, label) {
+              google.maps.event.trigger(map, 'bounds_changed')
+            });
+        });
 
 
 block map 
@@ -88,12 +88,38 @@ block map
   script(async="", defer="", src='https://maps.googleapis.com/maps/api/js?key=AIzaSyA9-HHJhzau_xzMF_1rMQm3YiC0xDvzKxU&callback=initMap')
 
 block footer
-  #myModal.modal.fade(role='dialog')
+  //- Display event information
+  //- Modal 
+  #eventDetails.modal.fade(role='dialog')
     .modal-dialog.modal-lg
       .modal-content
         .modal-header
-          button.close(type='button', data-dismiss='modal') ×
           h4#modelTitle.modal-title 
+          button.close(type='button', data-dismiss='modal') ×
+        .modal-body
+          h6 Date:
+          #startDate
+          h6 Location:
+          #venueLocation
+          h6 Link: 
+          a#urlLink(href='#')
+          h6 Similar artists: 
+          #simArt
+          a(href='#') Search by similar artists
+        .modal-footer
+          button.btn.btn-default(type='button', data-dismiss='modal') Close
+
+
+  //- Find events of a genre type in the current bounding box
+  //- Modal 
+  button.btn.btn-info.btn-sm.button(type='button', data-toggle='modal', data-target='#searchAreaModal' id='searchArea' style='display: none;') Open Large Modal
+  #searchAreaModal.modal.fade(role='dialog')
+    .modal-dialog.modal-lg
+      .modal-content
+        .modal-header
+          h4#modelTitle.modal-title
+            | Search for more events in this region! 
+          button.close(type='button', data-dismiss='modal') ×
         .modal-body
           a#urlLink(href='#') Link
           br
