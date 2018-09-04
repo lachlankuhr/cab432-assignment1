@@ -20,7 +20,7 @@ mixin drawevent(event)
           div(class="date col-6" id=idDate)
             = event.start.date
           .col-6
-            button.btn.btn-info.btn-sm.button(type='button', data-toggle='modal', data-target='#eventDetails' id=idButton) Open Large Modal
+            button.btn.btn-info.btn-sm.button(type='button', data-toggle='modal', data-target='#eventDetails' id=idButton) More event information
 
 block head
   meta(name='viewport', content='initial-scale=1.0, user-scalable=no')
@@ -57,6 +57,9 @@ block search
               google.maps.event.trigger(map, 'bounds_changed')
             });
         });
+    .col-3
+      | Choose an artist: <br>
+      input(type='text' id='singleArtistName' name='singleArtistName')
 
 
 block map 
@@ -106,29 +109,8 @@ block footer
           a#urlLink(href='#')
           h6 Similar artists: 
           #simArt
-          a(href='#') Search by similar artists
+          a(href='#' id='searchBySimilar') Search by similar artists
         .modal-footer
           button.btn.btn-default(type='button', data-dismiss='modal') Close
-
-
-  //- Find events of a genre type in the current bounding box
-  //- Modal 
-  button.btn.btn-info.btn-sm.button(type='button', data-toggle='modal', data-target='#searchAreaModal' id='searchArea' style='display: none;') Open Large Modal
-  #searchAreaModal.modal.fade(role='dialog')
-    .modal-dialog.modal-lg
-      .modal-content
-        .modal-header
-          h4#modelTitle.modal-title
-            | Search for more events in this region! 
-          button.close(type='button', data-dismiss='modal') ×
-        .modal-body
-          a#urlLink(href='#') Link
-          br
-          | Similar artists: 
-          #simArt
-            | Test
-        .modal-footer
-          button.btn.btn-default(type='button', data-dismiss='modal') Close
-
 
     

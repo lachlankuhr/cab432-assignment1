@@ -33,6 +33,33 @@ loadTrackedArtists = function(username, callback) {
     callback(null, JSON.parse(body), new Date());
     });
 }
+
+getArtistByName = function(artistName, callback) {
+    request("https://api.songkick.com/api/3.0/search/artists.json?apikey=" + "8AtK550RMQAmwyC8" + "&query=" + artistName, function(error, response, body) {
+        let artist;
+        if (Object.keys(JSON.parse(body).resultsPage.results).length != 0) {
+            artist = JSON.parse(body).resultsPage.results.artist[0];
+            callback(null, artist);
+        } else {
+            let err = true;
+            callback(err);
+        } 
+    });
+}
+
+Songkick.prototype.getArtistsByName = function(artistsName, callback) {
+    let artistArray = [];
+    _.each(artistsName, function(artistName) {
+        getArtistByName(artistName, function(error, artist) {
+            artistArray.push(artist);
+            if (artistArray.length == artistsName.length) {
+                callback(null, artistArray)
+            }
+        })
+    });
+
+}
+
 /*
 * Load the artists events for a given artist
 * Loading is making the REST request
@@ -70,7 +97,8 @@ Songkick.prototype.loadEventsInMetroArea = function(locationId, callback) {
         // FUCKING SONGKICK!! WWHYYYY???????????????????????????
         let events = _.filter(eventsJson, function(event) {
             return event.venue.id != null;
-        })
+        });
+        
         let locations = _.chain(events)
             .map(function(event) {
                 let location = event.location;

@@ -41,7 +41,12 @@ $(document).on('click', '.button', function () {
         success: function(artists) {
             let similiarArtists = "";
             $.each(artists, function(i, artist) {
-                similiarArtists = similiarArtists + artist.name + ", ";
+                // To remove the last comma
+                if (i == artists.length - 1) {
+                    similiarArtists = similiarArtists + artist.name;
+                } else {
+                    similiarArtists = similiarArtists + artist.name + ",";
+                }
             })
             document.getElementById('simArt').innerHTML = similiarArtists;
         }
@@ -126,7 +131,7 @@ function addMarkers(map, markers, locations) {
 
 // Add the search by area button to overlay with the map
 function CenterControl(controlDiv, map) {
-
+    // Copied from the Google Maps API documentation 
     // Set CSS for the control border
     var controlUI = document.createElement('div');
     controlUI.style.backgroundColor = '#fff';
@@ -192,4 +197,40 @@ function GenerateEventSidebar(event) {
         </div>
     </div>`;
     $('#sidebar').append(eventHtml);
+}
+
+window.onload = function() {
+    document.getElementById('searchBySimilar').addEventListener('click', function() {
+        let artists = document.getElementById('simArt').innerHTML;
+        console.log(artists);
+        $.ajax({
+            type: 'GET',
+            url: '/similar/?similar=' + artists,
+            success: function(response) {
+                console.log(response);
+                addMarkers(map, markers, response.locations);
+                let events = response.events;
+                for (let i = 0; i < events.length; i++) {
+                    GenerateEventSidebar(events[i]);
+                }
+            }
+        });
+    });
+
+    document.getElementById('singleArtistName').addEventListener('blur', function() {
+        let artists = document.getElementById('singleArtistName').value;
+        console.log(artists);
+        $.ajax({
+            type: 'GET',
+            url: '/similar/?similar=' + artists,
+            success: function(response) {
+                console.log(response);
+                addMarkers(map, markers, response.locations);
+                let events = response.events;
+                for (let i = 0; i < events.length; i++) {
+                    GenerateEventSidebar(events[i]);
+                }
+            }
+        });
+    });
 }

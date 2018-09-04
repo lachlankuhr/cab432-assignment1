@@ -14,6 +14,29 @@ nconf.argv()
     .env()
     .file({ file: 'config.json' });
 
+router.get('/similar', function(request, response, next) {
+  let similar = request.query.similar;
+  let artists = similar.split(',');
+  let songkick = new Songkick(nconf.get("songkick.apikey"));
+  songkick.getArtistsByName(artists, function(error, artistArray) {
+    songkick.getArtistsEvents(artistArray, function(error, events) {
+      let locations = _.chain(events)
+      .map(function(event) {
+        let location = event.location;
+        location.venueId = event.venue.id;
+        return location;
+      }).uniq(function(location) {
+        return location.city;
+      })
+      .sortBy(function(location) {
+        return location.city;
+      }).value();
+      let data = {'locations' : locations, 'events' : events};
+      response.send(data);
+    })
+  });
+});
+
 // Get the nearby events
 // For use in AJAX calls 
 router.get('/nearby', function(request, response, next) {
