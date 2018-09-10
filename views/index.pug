@@ -10,22 +10,22 @@ mixin drawevent(event)
   div(class='row event' class=venue id=eventId)
       .col-12
         .row
-          div(class="col-9 artist" id=idArtist)
+          div(class="col-7 artist" id=idArtist)
             = event.performance[0].displayName
-          .col-3
-            | TBD
+          .col-5
+            = event.type
         .row
           = event.location.city
         .row
           div(class="date col-6" id=idDate)
             = event.start.date
-          .col-6
-            button.btn.btn-info.btn-sm.button(type='button', data-toggle='modal', data-target='#eventDetails' id=idButton) More event information
+          .col-6(style='float:right;')
+            button.btn.btn-info.btn-sm.button(type='button', data-toggle='modal', data-target='#eventDetails' id=idButton) More info
 
 block head
   meta(name='viewport', content='initial-scale=1.0, user-scalable=no')
   meta(charset='utf-8')
-  title SongKick Maps
+  title MapIt Music
 
 block links
   link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css', integrity='sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO', crossorigin='anonymous')
@@ -43,23 +43,30 @@ block links
 block search
   #search.row
     .col-3
+      h1 MapIt Music
+    .col-3
       form(method='get')
             | SongKick Username: <br>
             input(type='text' name='username')
-    .col-3
-      | Choose a date range: <br>
-      input(type='text', id='daterange' name='daterange', value='01/01/2018 - 12/30/2019')
-      script.
-        $(function() {
-          $('input[name="daterange"]').daterangepicker({
-              opens: 'right'
-            }, function(start, end, label) {
-              google.maps.event.trigger(map, 'bounds_changed')
-            });
-        });
+            input(type="submit" value="Go" style="float: left")
     .col-3
       | Choose an artist: <br>
       input(type='text' id='singleArtistName' name='singleArtistName')
+      input(type="submit" name="search" value="Go" style="float: left" id="singleArtistSubmit")
+    .col-3
+      | Choose a date range: <br>
+      input(type='text', id='daterange' name='daterange', value='01/01/2018 - 01/01/2020')
+      script.
+        $(function() {
+          $('input[name="daterange"]').daterangepicker({
+              opens: 'right',
+              locale: {
+                      format: 'DD/MM/YYYY'
+                      }
+            }, function(start, end, label) {
+                google.maps.event.trigger(map, 'bounds_changed');
+            });
+        });
 
 
 block map 

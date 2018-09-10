@@ -35,12 +35,12 @@ loadTrackedArtists = function(username, callback) {
 }
 
 getArtistByName = function(artistName, callback) {
-    request("https://api.songkick.com/api/3.0/search/artists.json?apikey=" + "8AtK550RMQAmwyC8" + "&query=" + artistName, function(error, response, body) {
-        let artist;
-        if (Object.keys(JSON.parse(body).resultsPage.results).length != 0) {
-            artist = JSON.parse(body).resultsPage.results.artist[0];
+    request("https://api.songkick.com/api/3.0/search/artists.json?apikey=" + "8AtK550RMQAmwyC8" + "&query=" + encodeURI(artistName), function(error, response, body) {
+        if (JSON.parse(body).resultsPage.totalEntries != 0 && JSON.parse(body).resultsPage.status != "error") {
+            let artist = JSON.parse(body).resultsPage.results.artist[0];
             callback(null, artist);
         } else {
+            console.log("No artist of that name could be found.")
             let err = true;
             callback(err);
         } 
@@ -49,11 +49,15 @@ getArtistByName = function(artistName, callback) {
 
 Songkick.prototype.getArtistsByName = function(artistsName, callback) {
     let artistArray = [];
+    let counter = 0;
     _.each(artistsName, function(artistName) {
         getArtistByName(artistName, function(error, artist) {
-            artistArray.push(artist);
-            if (artistArray.length == artistsName.length) {
-                callback(null, artistArray)
+            counter = counter + 1;
+            if (error == null) {
+                artistArray.push(artist);
+            } 
+            if (counter == artistsName.length) {
+                callback(null, artistArray);
             }
         })
     });
@@ -81,7 +85,13 @@ loadArtistEvents = function(artist, page, callback) {
  */
 Songkick.prototype.loadMetroArea = function(lat, lng, callback) {
     request("https://api.songkick.com/api/3.0/search/locations.json?location=geo:" + lat + "," + lng + "&apikey=" + Songkick.prototype.apiKey + "&per_page=50", function(error, response, body) {
-        let locationId = JSON.parse(body).resultsPage.results.location[0].metroArea.id;
+        let locationId;
+        console.log(Object.keys(JSON.parse(body).resultsPage.results).length);
+        console.log(Object.keys(JSON.parse(body).resultsPage.results).length == 0);
+        if (Object.keys(JSON.parse(body).resultsPage.results).length != 0) {
+            locationId = JSON.parse(body).resultsPage.results.location[0].metroArea.id;
+        }
+        
         console.log(locationId);
         callback(error, locationId);
     });

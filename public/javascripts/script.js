@@ -141,7 +141,7 @@ function CenterControl(controlDiv, map) {
     controlUI.style.cursor = 'pointer';
     controlUI.style.marginBottom = '22px';
     controlUI.style.textAlign = 'center';
-    controlUI.title = 'Click to find more events in the current map region';
+    controlUI.title = 'Click to find more events in the current map region.';
     controlDiv.appendChild(controlUI);
 
     // Set CSS for the control interior
@@ -169,6 +169,7 @@ function CenterControl(controlDiv, map) {
                 for (let i = 0; i < events.length; i++) {
                     GenerateEventSidebar(events[i]);
                 }
+                google.maps.event.trigger(map, 'bounds_changed');
             }
         });
     });
@@ -184,16 +185,18 @@ function GenerateEventSidebar(event) {
     `<div class="row event ` + venueId + `" id="` + eventId + `">
         <div class="col-12">
             <div class="row">
-                <div class="col-9 artist" id="` + artistId + `">` +
+                <div class="col-7 artist" id="` + artistId + `">` +
                     event.performance[0].displayName + 
                 `</div>
-                <div class="col-3"> TBD </div>
+                <div class="col-5">` + event.type +  `</div>
             </div>
             <div class="row">` + event.location.city + `</div>
             <div class="row">
                 <div class="date col-6" id="` + dateId + `">` + event.start.date + `</div>
-                <div class="col-6"><button class="btn btn-info btn-sm button" type="button" data-toggle="modal" data-target="#eventDetails" id="` + buttonId + `">Open Large Modal</button></div>
-            </div>
+                    <div class="col-6" style="float:right;">
+                        <button class="btn btn-info btn-sm button" type="button" data-toggle="modal" data-target="#eventDetails" id="` + buttonId + `">More info</button>
+                    </div>
+                </div>
         </div>
     </div>`;
     $('#sidebar').append(eventHtml);
@@ -213,11 +216,12 @@ window.onload = function() {
                 for (let i = 0; i < events.length; i++) {
                     GenerateEventSidebar(events[i]);
                 }
+                google.maps.event.trigger(map, 'bounds_changed');
             }
         });
     });
 
-    document.getElementById('singleArtistName').addEventListener('blur', function() {
+    document.getElementById('singleArtistSubmit').addEventListener('click', function() {
         let artists = document.getElementById('singleArtistName').value;
         console.log(artists);
         $.ajax({
@@ -230,6 +234,7 @@ window.onload = function() {
                 for (let i = 0; i < events.length; i++) {
                     GenerateEventSidebar(events[i]);
                 }
+                google.maps.event.trigger(map, 'bounds_changed');
             }
         });
     });

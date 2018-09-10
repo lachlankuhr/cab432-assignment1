@@ -1,29 +1,22 @@
-.body {
-  overflow: hidden;
-}
-.row {
-  border: 1px black solid;
-}
+
 #sidebar {
   max-width: 400px;
   min-width: 150px;
-  max-height: 85vh;
   min-height: 85vh;
+  max-height: 85vh;
   overflow-y: scroll;
-  
+  border: 2px solid black;
 }
 
 /* Always set the map height explicitly to define the size of the div
 * element that contains the map. */
 #map {
   max-height: 85vh;
-  width: 100%;
-  float: left;
 }
 
 /* Optional: Makes the sample page fill the window. */
 html, body {
-  height: 100%;
+  width: 100%;
   margin: 0;
   padding: 0;
 }
@@ -32,14 +25,18 @@ html, body {
   padding-left: 2.5%;
   padding-right: 2.5%;
   height: 100%;
-  width: 24.5%;
+  width: 20vw;
   float: left;
 }
 
 #search {
   padding: 10px;
+  width: 100vw;
+  border: 2px black solid;
 }
 
 .event {
   padding: 5px;
+  margin: 5px;
+  border: 1px black solid;
 }
