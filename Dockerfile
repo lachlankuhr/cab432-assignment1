@@ -1,7 +1,16 @@
 FROM node:boron
 
-RUN npm install nodemon -g 
+# Copy app source
+COPY . /src
 
+# Set working directory to /src
 WORKDIR /src
-ADD package.json package.json
+
+# Install app dependencies
 RUN npm install
+
+# Expose port to outside world
+EXPOSE 3000
+
+# start command as per package.json
+CMD ["npm", "start"]

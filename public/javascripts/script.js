@@ -11,12 +11,13 @@ function getMarkers(theMarkers) {
 // Reset the event information modal so that it doesn't display old information 
 // prior to finishing the AJAX request
 function ResetEventModal() {
-    document.getElementById('simArt').innerHTML = "";
-    document.getElementById('urlLink').href = "";
-    document.getElementById('urlLink').innerHTML = "";
-    document.getElementById('modelTitle').innerHTML = "";
-    document.getElementById('startDate').innerHTML = "";
-    document.getElementById('venueLocation').innerHTML = "";
+    document.getElementById('simArt').innerHTML = "Loading...";
+    document.getElementById('urlLink').href = "Loading...";
+    document.getElementById('urlLink').innerHTML = "Loading...";
+    document.getElementById('modelTitle').innerHTML = "Loading...";
+    document.getElementById('startDate').innerHTML = "Loading...";
+    document.getElementById('venueLocation').innerHTML = "Loading...";
+    document.getElementById('artistPicture').src = "#";
 }
 
 // AJAX for event information.
@@ -69,6 +70,8 @@ $(document).on('click', '.button', function () {
             // Event link
             document.getElementById('urlLink').href = event.uri;
             document.getElementById('urlLink').innerHTML = event.uri;
+
+            document.getElementById('artistPicture').src = event.artistDetails.images[event.artistDetails.images.length - 1];
 
         }
     });
@@ -235,6 +238,32 @@ window.onload = function() {
                     GenerateEventSidebar(events[i]);
                 }
                 google.maps.event.trigger(map, 'bounds_changed');
+            }
+        });
+    });
+
+    $(document).ajaxStart(function(){
+        $("#wait").css("display", "block");
+    });
+
+    $(document).ajaxComplete(function(){
+        $("#wait").css("display", "none");
+    });
+
+    document.getElementById('singleArtistName').addEventListener('input', function() {
+        let artist = document.getElementById('singleArtistName').value;
+        let suggestions = document.getElementById('artistsList');
+        suggestions.innerHTML = "";
+        console.log(artist);
+        $.ajax({
+            type: 'GET',
+            url: '/predictions/?artist=' + artist,
+            success: function(response) {
+                let artists = response.result;
+                for (let i = 0; i < artists.length; i++) {
+                    let option = `<option value="` + artists[i].name + `"></option>`;
+                    suggestions.innerHTML = suggestions.innerHTML + option;
+                }
             }
         });
     });

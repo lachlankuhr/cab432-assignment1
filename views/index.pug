@@ -50,8 +50,10 @@ block search
             input(type='text' name='username')
             input(type="submit" value="Go" style="float: left")
     .col-3
-      | Choose an artist: <br>
-      input(type='text' id='singleArtistName' name='singleArtistName')
+      | Choose an artist(s): <br>
+      input(type='text' list="artistsList" id='singleArtistName' name='singleArtistName')
+      datalist#artistsList
+
       input(type="submit" name="search" value="Go" style="float: left" id="singleArtistSubmit")
     .col-3
       | Choose a date range: <br>
@@ -108,6 +110,8 @@ block footer
           h4#modelTitle.modal-title 
           button.close(type='button', data-dismiss='modal') ×
         .modal-body
+          h6 Artist Picture: <br>
+            img(src="#" id='artistPicture')
           h6 Date:
           #startDate
           h6 Location:
@@ -119,5 +123,8 @@ block footer
           a(href='#' id='searchBySimilar') Search by similar artists
         .modal-footer
           button.btn.btn-default(type='button', data-dismiss='modal') Close
+  #wait(style='display:none;position:absolute;top:40%;left:55%;padding:2px;z-index:999999999;')
+    img(src='images/loading_icon.gif')
+
 
     

@@ -14,6 +14,18 @@ nconf.argv()
     .env()
     .file({ file: 'config.json' });
 
+router.get('/predictions', function(request, response, next) {
+  let artist = request.query.artist;
+  if (artist != null) {
+    var lf = new LastFm(nconf.get('last.fm.apikey'));
+    lf.getArtists(artist, function(error, data) {
+      response.send(data);
+    });
+  } else {
+    response.send('Error.')
+  }
+});
+
 router.get('/similar', function(request, response, next) {
   let similar = request.query.similar;
   if (similar != null) {
@@ -66,8 +78,13 @@ router.get('/events', function(request, response, next) {
   let eventId = request.query.eventId;
   if (eventId != null) {
     let songkick = new Songkick(nconf.get("songkick.apikey"));
+    var lf = new LastFm(nconf.get('last.fm.apikey'));
     songkick.getEventDetails(eventId, function(error, data) {
-      response.send(data.resultsPage.results.event);
+      let event = data.resultsPage.results.event;
+      lf.getArtists(event.performance[0].displayName, function(err, artist) {
+        event.artistDetails = artist.result[0];
+        response.send(event);
+      });
     });
   } else {
     response.send('Error.');
