@@ -58,17 +58,7 @@ block search
     .col-3
       | Choose a date range: <br>
       input(type='text', id='daterange' name='daterange', value='01/01/2018 - 01/01/2020')
-      script.
-        $(function() {
-          $('input[name="daterange"]').daterangepicker({
-              opens: 'right',
-              locale: {
-                      format: 'DD/MM/YYYY'
-                      }
-            }, function(start, end, label) {
-                google.maps.event.trigger(map, 'bounds_changed');
-            });
-        });
+        
 
 
 block map 

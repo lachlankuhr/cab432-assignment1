@@ -30,12 +30,17 @@ loadTrackedArtists = function(username, callback) {
         return callback(new HTTPError(response.statusCode, response.statusMessage), null);
     }
     // Callback with the data 
-    callback(null, JSON.parse(body), new Date());
+    try {
+        callback(null, JSON.parse(body), new Date());
+    } catch (e) {
+        callback(true);
+    }
     });
 }
 
 getArtistByName = function(artistName, callback) {
-    request("https://api.songkick.com/api/3.0/search/artists.json?apikey=" + "8AtK550RMQAmwyC8" + "&query=" + encodeURI(artistName), function(error, response, body) {
+    request("https://api.songkick.com/api/3.0/search/artists.json?apikey=" + Songkick.prototype.apiKey + "&query=" + encodeURI(artistName), function(error, response, body) {
+    try {
         if (JSON.parse(body).resultsPage.totalEntries != 0 && JSON.parse(body).resultsPage.status != "error") {
             let artist = JSON.parse(body).resultsPage.results.artist[0];
             callback(null, artist);
@@ -44,6 +49,9 @@ getArtistByName = function(artistName, callback) {
             let err = true;
             callback(err);
         } 
+    } catch (e) {
+        callback(true);
+    }
     });
 }
 
@@ -85,15 +93,15 @@ loadArtistEvents = function(artist, page, callback) {
  */
 Songkick.prototype.loadMetroArea = function(lat, lng, callback) {
     request("https://api.songkick.com/api/3.0/search/locations.json?location=geo:" + lat + "," + lng + "&apikey=" + Songkick.prototype.apiKey + "&per_page=50", function(error, response, body) {
-        let locationId;
-        console.log(Object.keys(JSON.parse(body).resultsPage.results).length);
-        console.log(Object.keys(JSON.parse(body).resultsPage.results).length == 0);
-        if (Object.keys(JSON.parse(body).resultsPage.results).length != 0) {
-            locationId = JSON.parse(body).resultsPage.results.location[0].metroArea.id;
+        try {
+            let locationId;
+            if (Object.keys(JSON.parse(body).resultsPage.results).length != 0) {
+                locationId = JSON.parse(body).resultsPage.results.location[0].metroArea.id;
+            }
+            callback(null, locationId);
+        } catch (e) {
+            callback(true);
         }
-        
-        console.log(locationId);
-        callback(error, locationId);
     });
  }
 
@@ -102,9 +110,9 @@ Songkick.prototype.loadMetroArea = function(lat, lng, callback) {
  */
 Songkick.prototype.loadEventsInMetroArea = function(locationId, callback) {
     request("https://api.songkick.com/api/3.0/metro_areas/" + locationId + "/calendar.json?apikey=" + Songkick.prototype.apiKey + "&per_page=50", function(error, response, body) {
+    try {
         let eventsJson = JSON.parse(body).resultsPage.results.event;
         // GET RID OF ANY EVENTS WITH A VENUE ID OF NULL
-        // FUCKING SONGKICK!! WWHYYYY???????????????????????????
         let events = _.filter(eventsJson, function(event) {
             return event.venue.id != null;
         });
@@ -122,7 +130,10 @@ Songkick.prototype.loadEventsInMetroArea = function(locationId, callback) {
             .sortBy(function(location) {
                 return location.city;
             }).value();
-        callback(error, locations, events);
+        callback(null, locations, events);
+    } catch (e) {
+        callback(true);
+    }
     });
  }
 
@@ -149,10 +160,12 @@ Songkick.prototype.getTrackedArtists = function(username, callback) {
         if (error) {
             return callback(error);
         }
-
-        var artists = data.resultsPage.results.artist;
-
-        callback(null, artists);
+        try {
+            var artists = data.resultsPage.results.artist;
+            callback(null, artists);
+        } catch (e) {
+            callback(true);
+        }
     })
 }
 
@@ -171,7 +184,6 @@ Songkick.prototype.getArtistEvents = function(artist, callback) {
             if (error) {
               return callback(error);
             }
-    
             events = events.concat(data.resultsPage.results.event || []);
             page = data.resultsPage.page;
             perPage = data.resultsPage.perPage;

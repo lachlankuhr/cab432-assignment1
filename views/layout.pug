@@ -7,12 +7,12 @@ html
         #container
             block search
             .row.content
-                #sidebar.col-lg-3.col-sm-12(scrolltop='10')
+                #sidebar.col-3(scrolltop='10')
                     .row 
                         h1 Events
                     each event in events
                         +drawevent(event)
-                #map.col-lg-9.col-sm-12
+                #map.col-9
                     #buttonOverlay
                     block map
             block footer

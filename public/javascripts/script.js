@@ -8,16 +8,28 @@ function getMarkers(theMarkers) {
     markers = theMarkers;
 }
 
+// Set up the date range 
+$(function() {
+    $('input[name="daterange"]').daterangepicker({
+        opens: 'right',
+        locale: {
+                format: 'DD/MM/YYYY'
+                }
+      }, function(start, end, label) {
+          google.maps.event.trigger(map, 'bounds_changed');
+    });
+});
+
 // Reset the event information modal so that it doesn't display old information 
 // prior to finishing the AJAX request
 function ResetEventModal() {
+    document.getElementById('artistPicture').src = "#";
     document.getElementById('simArt').innerHTML = "Loading...";
     document.getElementById('urlLink').href = "Loading...";
     document.getElementById('urlLink').innerHTML = "Loading...";
     document.getElementById('modelTitle').innerHTML = "Loading...";
     document.getElementById('startDate').innerHTML = "Loading...";
     document.getElementById('venueLocation').innerHTML = "Loading...";
-    document.getElementById('artistPicture').src = "#";
 }
 
 // AJAX for event information.
@@ -41,14 +53,22 @@ $(document).on('click', '.button', function () {
         url: '/populate/?artist=' + encodeURI(artist),
         success: function(artists) {
             let similiarArtists = "";
-            $.each(artists, function(i, artist) {
-                // To remove the last comma
-                if (i == artists.length - 1) {
-                    similiarArtists = similiarArtists + artist.name;
-                } else {
-                    similiarArtists = similiarArtists + artist.name + ",";
-                }
-            })
+            try {
+                $.each(artists, function(i, artist) {
+                    // To remove the last comma
+                    if (i == artists.length - 1) {
+                        similiarArtists = similiarArtists + artist.name;
+                    } else {
+                        similiarArtists = similiarArtists + artist.name + ",";
+                    }
+                });
+            } catch (e) {
+                similiarArtists = "Couldn't find similar artists.";
+            }
+            if (artists.length == 0) {
+                similiarArtists = "Couldn't find similar artists.";
+            }
+            
             document.getElementById('simArt').innerHTML = similiarArtists;
         }
     });
@@ -71,7 +91,11 @@ $(document).on('click', '.button', function () {
             document.getElementById('urlLink').href = event.uri;
             document.getElementById('urlLink').innerHTML = event.uri;
 
-            document.getElementById('artistPicture').src = event.artistDetails.images[event.artistDetails.images.length - 1];
+            try {
+                document.getElementById('artistPicture').src = event.artistDetails.images[event.artistDetails.images.length - 1];
+            } catch {
+                document.getElementById('artistPicture').src = '#';
+            }
 
         }
     });
@@ -170,7 +194,9 @@ function CenterControl(controlDiv, map) {
                 addMarkers(map, markers, response.locations);
                 let events = response.events;
                 for (let i = 0; i < events.length; i++) {
-                    GenerateEventSidebar(events[i]);
+                    if (document.getElementById(events[i].id) == null) {
+                        GenerateEventSidebar(events[i]);
+                    }
                 }
                 google.maps.event.trigger(map, 'bounds_changed');
             }
@@ -217,7 +243,9 @@ window.onload = function() {
                 addMarkers(map, markers, response.locations);
                 let events = response.events;
                 for (let i = 0; i < events.length; i++) {
-                    GenerateEventSidebar(events[i]);
+                    if (document.getElementById(events[i].id) == null) {
+                        GenerateEventSidebar(events[i]);
+                    }
                 }
                 google.maps.event.trigger(map, 'bounds_changed');
             }
@@ -235,7 +263,9 @@ window.onload = function() {
                 addMarkers(map, markers, response.locations);
                 let events = response.events;
                 for (let i = 0; i < events.length; i++) {
-                    GenerateEventSidebar(events[i]);
+                    if (document.getElementById(events[i].id) == null) {
+                        GenerateEventSidebar(events[i]);
+                    }
                 }
                 google.maps.event.trigger(map, 'bounds_changed');
             }
@@ -253,12 +283,12 @@ window.onload = function() {
     document.getElementById('singleArtistName').addEventListener('input', function() {
         let artist = document.getElementById('singleArtistName').value;
         let suggestions = document.getElementById('artistsList');
-        suggestions.innerHTML = "";
         console.log(artist);
         $.ajax({
             type: 'GET',
             url: '/predictions/?artist=' + artist,
             success: function(response) {
+                suggestions.innerHTML = "";
                 let artists = response.result;
                 for (let i = 0; i < artists.length; i++) {
                     let option = `<option value="` + artists[i].name + `"></option>`;
