@@ -7,13 +7,17 @@ let _ = require("underscore");
 
 
 // Constructor
+// Contain the SongKick API key for exportation
 function Songkick(apiKey) {
     Songkick.prototype.apiKey = apiKey;
 }
 
 /* 
-* Load the artists for the username specified
-* Loading is making the REST request
+* Load the artists for the username specified.
+* Method requests for all the artists the user follows. 
+* The data for this method is then passed to find the events for each artist. 
+* @param username - The username of the SongKick user for which the followed artists are to be determined. 
+* @param callback - The callback takes the parameters of error and data. 
 */
 loadTrackedArtists = function(username, callback) {
     request("http://api.songkick.com/api/3.0/users/" + username + "/artists/tracked.json?apikey=" + Songkick.prototype.apiKey + "&per_page=all", function(error, response, body) {
@@ -29,7 +33,7 @@ loadTrackedArtists = function(username, callback) {
     if (response.statusCode != 200) {
         return callback(new HTTPError(response.statusCode, response.statusMessage), null);
     }
-    // Callback with the data 
+    // Try to handle the received data 
     try {
         callback(null, JSON.parse(body), new Date());
     } catch (e) {
@@ -38,11 +42,27 @@ loadTrackedArtists = function(username, callback) {
     });
 }
 
+/* 
+* Gets the artist by provided an artist name. 
+* The API returns a list of potential artists from the artist name provided. For simplicity and best results, the true artist is assumed to be the first artist in this list. 
+* Useful for parsing user input of artist name. 
+* Provides artist ID. 
+* @param artistName - The name of the artist for which the artist ID (and other details) which to be determined. 
+* @param callback - The callback takes the parameters of error and data. 
+*/
 getArtistByName = function(artistName, callback) {
     request("https://api.songkick.com/api/3.0/search/artists.json?apikey=" + Songkick.prototype.apiKey + "&query=" + encodeURI(artistName), function(error, response, body) {
+    // Handle the error
+    if (error) {
+        return callback(error);
+    }
+    // Handle the HTTP errors. 
+    if (response.statusCode != 200) {
+        return callback(new HTTPError(response.statusCode, response.statusMessage), null);
+    }
     try {
         if (JSON.parse(body).resultsPage.totalEntries != 0 && JSON.parse(body).resultsPage.status != "error") {
-            let artist = JSON.parse(body).resultsPage.results.artist[0];
+            let artist = JSON.parse(body).resultsPage.results.artist[0]; // take the first artist
             callback(null, artist);
         } else {
             console.log("No artist of that name could be found.")
@@ -55,6 +75,12 @@ getArtistByName = function(artistName, callback) {
     });
 }
 
+/*
+* Iterates through an array of artist names.  Returns the artist details for each artist name as an array. 
+* The details include the artist ID. 
+* @param artistsName - An array of artist names. 
+* @param callback - The callback takes the parameters of error and data. 
+*/
 Songkick.prototype.getArtistsByName = function(artistsName, callback) {
     let artistArray = [];
     let counter = 0;
@@ -64,6 +90,9 @@ Songkick.prototype.getArtistsByName = function(artistsName, callback) {
             if (error == null) {
                 artistArray.push(artist);
             } 
+            // Check to see when each artist has been processed.
+            // Since getArtistByName is asynchronous, the order of  
+            // artistArray might not (likely) match that of artistsName.
             if (counter == artistsName.length) {
                 callback(null, artistArray);
             }
@@ -73,30 +102,51 @@ Songkick.prototype.getArtistsByName = function(artistsName, callback) {
 }
 
 /*
-* Load the artists events for a given artist
+* Load the artists events for a given artist. 
 * Loading is making the REST request
+* @param artist - The artist details.  These artists details must be obtained via the SongKick API in order to get the artist ID. 
+* @param callback - The callback takes the parameters of error and data. 
 */ 
 loadArtistEvents = function(artist, page, callback) {
     request("http://api.songkick.com/api/3.0/artists/" + artist.id + "/calendar.json?apikey=" + Songkick.prototype.apiKey + "&per_page=50&page=" + page, function(error, response, body) {
+        // Handle the error
         if (error) {
             return callback(error);
         }
+        // Handle the HTTP errors. 
         if (response.statusCode != 200) {
             return callback(new HTTPError(response.statusCode, response.statusMessage), null);
         }
-        callback(null, JSON.parse(body), new Date());
+        try {
+            callback(null, JSON.parse(body), new Date());
+        } catch (e) {
+            callback(true);
+        }
     });
 }
 
 /*
  * Load metro areas close to a {lat, long}. 
+ * For simplicity and to reduce the number of locations, the first of the most nearby metro areas is returned. 
+ * @param lat - The latitude. 
+ * @param lngn - The longitude. 
+ * @param callback - The callback takes the parameters of error and data. The callback will likely be loadEventsInMetroArea.
  */
 Songkick.prototype.loadMetroArea = function(lat, lng, callback) {
     request("https://api.songkick.com/api/3.0/search/locations.json?location=geo:" + lat + "," + lng + "&apikey=" + Songkick.prototype.apiKey + "&per_page=50", function(error, response, body) {
+        // Handle the error
+        if (error) {
+            return callback(error);
+        }
+        // Handle the HTTP errors. 
+        if (response.statusCode != 200) {
+            return callback(new HTTPError(response.statusCode, response.statusMessage), null);
+        }
+        // Try and parse the returned data
         try {
             let locationId;
             if (Object.keys(JSON.parse(body).resultsPage.results).length != 0) {
-                locationId = JSON.parse(body).resultsPage.results.location[0].metroArea.id;
+                locationId = JSON.parse(body).resultsPage.results.location[0].metroArea.id; // only take the first 
             }
             callback(null, locationId);
         } catch (e) {
@@ -106,13 +156,26 @@ Songkick.prototype.loadMetroArea = function(lat, lng, callback) {
  }
 
  /*
- * Load the events happening in a metro area.
+ * Load the events happening in a metro area. 
+ * Used as a callback for loadMetroArea.  Uses the location ID. 
+ * @param locationId - the location ID obtained from calling loadMetroArea. 
+ * @param callback - The callback takes the parameters of error and data. 
  */
 Songkick.prototype.loadEventsInMetroArea = function(locationId, callback) {
     request("https://api.songkick.com/api/3.0/metro_areas/" + locationId + "/calendar.json?apikey=" + Songkick.prototype.apiKey + "&per_page=50", function(error, response, body) {
+    // Handle the error
+    if (error) {
+        return callback(error);
+    }
+    // Handle the HTTP errors. 
+    if (response.statusCode != 200) {
+        return callback(new HTTPError(response.statusCode, response.statusMessage), null);
+    }
+    // Try and parse the returned data
     try {
         let eventsJson = JSON.parse(body).resultsPage.results.event;
-        // GET RID OF ANY EVENTS WITH A VENUE ID OF NULL
+        // Remove any events with a venue ID of null. 
+        // TODO: Ask SongKick WHY they would do this.
         let events = _.filter(eventsJson, function(event) {
             return event.venue.id != null;
         });
@@ -138,28 +201,37 @@ Songkick.prototype.loadEventsInMetroArea = function(locationId, callback) {
  }
 
 /*
-* Gets the event details
+* Gets the event details provided an event. 
+* Method is used for provided additional details for a particular event in the information modal. 
+* The event ID can be generated from loadArtistEvents, loadEventsInMetroArea, and eventsForArtist. 
+* @param eventId - ID for the event. 
+* @param callback - The callback takes the parameters of error and data. 
 */
 Songkick.prototype.getEventDetails = function(eventId, callback) {
     request("https://api.songkick.com/api/3.0/events/" + eventId + ".json?apikey=" + Songkick.prototype.apiKey, function(error, response, body) {
+        // Handle the error
         if (error) {
             return callback(error);
         }
+        // Handle the HTTP error.
         if (response.statusCode != 200) {
             return callback(new HTTPError(response.statusCode, response.statusMessage), null);
         }
-        callback(null, JSON.parse(body));
+        try {
+            callback(null, JSON.parse(body));
+        } catch (e) {
+            callback(true);
+        }
     });
 }
 
 /*
-* Gets the tracks artist array
+* Gets the tracked artist array. 
+* Processes artists array that is returned by loadTrackedArtists. 
 */
 Songkick.prototype.getTrackedArtists = function(username, callback) {
     loadTrackedArtists(username, function(error, data) {
-        if (error) {
-            return callback(error);
-        }
+        // Try to process the data.
         try {
             var artists = data.resultsPage.results.artist;
             callback(null, artists);
@@ -171,6 +243,8 @@ Songkick.prototype.getTrackedArtists = function(username, callback) {
 
 /*
 * Gets an artist events. 
+* Processes the data into the required form. 
+* @param callback - The callback takes the parameters of error and data. 
 */
 Songkick.prototype.getArtistEvents = function(artist, callback) {
     let events = [];
@@ -202,13 +276,12 @@ Songkick.prototype.getArtistEvents = function(artist, callback) {
 }
 
 /*
-* Gets all the artists events for a user
-* Design to be used in conjunction with a username
+* Gets all the events for a an array of artists. 
+* @param artists - An array of artist details.  Must have field of artist ID. 
+* @param callback - The callback takes the parameters of error and data. 
 */
-
 Songkick.prototype.getArtistsEvents = function(artists, callback) {
     var _this = this;
-  
     var events = [];
   
     async.eachLimit(artists, 10, function(artist, callback) {
@@ -234,6 +307,7 @@ Songkick.prototype.getArtistsEvents = function(artists, callback) {
     });
 }
 
+// Generate error for no such user being found. 
 function NoSuchUserError(message) {
     Error.call(this);
     this.message = message;

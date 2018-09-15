@@ -46,7 +46,7 @@ $(document).on('click', '.button', function () {
 
     // Reset the modal so it doesn't display old information
     ResetEventModal();
-
+    
     // Get the similar artists by calling the LastFM API.
     $.ajax({
         type: 'GET',
@@ -92,11 +92,11 @@ $(document).on('click', '.button', function () {
             document.getElementById('urlLink').innerHTML = event.uri;
 
             try {
-                document.getElementById('artistPicture').src = event.artistDetails.images[event.artistDetails.images.length - 1];
-            } catch {
+                let picture = event.artistDetails.images[event.artistDetails.images.length - 1];
+                document.getElementById('artistPicture').src = picture;
+            } catch (e) {
                 document.getElementById('artistPicture').src = '#';
             }
-
         }
     });
 
@@ -142,6 +142,9 @@ function filterByDate() {
 function addMarkers(map, markers, locations) {
     // Add each marker
     for (var i = 0; i < locations.length; i++) {
+        if (locations[i].lat == null || locations[i].lng == null) {
+            continue;
+        }
         var marker = new google.maps.Marker({
             position: {lat: locations[i].lat, lng: locations[i].lng},
             map: map,
@@ -190,7 +193,6 @@ function CenterControl(controlDiv, map) {
             type: 'GET',
             url: '/nearby/?lat=' + lat + '&lng=' + lng,
             success: function(response) {
-                console.log(response);
                 addMarkers(map, markers, response.locations);
                 let events = response.events;
                 for (let i = 0; i < events.length; i++) {
@@ -203,7 +205,9 @@ function CenterControl(controlDiv, map) {
         });
     });
 }
- // TODO: UPDATE THIS WHEN THE PUG MIXIN IS UPDATED. 
+
+// Adds the events on the side bar for AJAX calls.
+// TODO: UPDATE THIS WHEN THE PUG MIXIN IS UPDATED. 
 function GenerateEventSidebar(event) {
     let venueId = event.venue.id;
     let eventId = event.id;
@@ -231,15 +235,14 @@ function GenerateEventSidebar(event) {
     $('#sidebar').append(eventHtml);
 }
 
+// Add event listens on load of the page
 window.onload = function() {
     document.getElementById('searchBySimilar').addEventListener('click', function() {
         let artists = document.getElementById('simArt').innerHTML;
-        console.log(artists);
         $.ajax({
             type: 'GET',
             url: '/similar/?similar=' + artists,
             success: function(response) {
-                console.log(response);
                 addMarkers(map, markers, response.locations);
                 let events = response.events;
                 for (let i = 0; i < events.length; i++) {
@@ -254,12 +257,10 @@ window.onload = function() {
 
     document.getElementById('singleArtistSubmit').addEventListener('click', function() {
         let artists = document.getElementById('singleArtistName').value;
-        console.log(artists);
         $.ajax({
             type: 'GET',
             url: '/similar/?similar=' + artists,
             success: function(response) {
-                console.log(response);
                 addMarkers(map, markers, response.locations);
                 let events = response.events;
                 for (let i = 0; i < events.length; i++) {
@@ -272,18 +273,9 @@ window.onload = function() {
         });
     });
 
-    $(document).ajaxStart(function(){
-        $("#wait").css("display", "block");
-    });
-
-    $(document).ajaxComplete(function(){
-        $("#wait").css("display", "none");
-    });
-
     document.getElementById('singleArtistName').addEventListener('input', function() {
         let artist = document.getElementById('singleArtistName').value;
         let suggestions = document.getElementById('artistsList');
-        console.log(artist);
         $.ajax({
             type: 'GET',
             url: '/predictions/?artist=' + artist,
@@ -297,4 +289,14 @@ window.onload = function() {
             }
         });
     });
+
+
+    $(document).ajaxStart(function(){
+        $("#wait").css("display", "block");
+    });
+
+    $(document).ajaxComplete(function(){
+        $("#wait").css("display", "none");
+    });
+
 }

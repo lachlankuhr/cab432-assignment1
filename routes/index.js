@@ -34,10 +34,8 @@ router.get('/similar', function(request, response, next) {
     let similar = request.query.similar;
     if (similar != null) {
       let artists = similar.split(',');
-      console.log(artists);
       let songkick = new Songkick(nconf.get("songkick.apikey"));
       songkick.getArtistsByName(artists, function(error, artistArray) {
-        console.log(artistArray);
         songkick.getArtistsEvents(artistArray, function(error, events) {
           events = _.filter(events, function(event) {
               return event.venue.id != null;
@@ -117,8 +115,14 @@ router.get('/events', function(request, response, next) {
           if (!error) {
             let event = data.resultsPage.results.event;
             lf.getArtists(event.performance[0].displayName, function(err, artist) {
-              event.artistDetails = artist.result[0];
-              response.send(event);
+              if (!error) {
+                try {
+                  event.artistDetails = artist.result[0];
+                  response.send(event);
+                } catch (e) {
+                  response.send("Error.");
+                }
+              }
             });
           }
       });
