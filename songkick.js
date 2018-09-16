@@ -65,7 +65,6 @@ getArtistByName = function(artistName, callback) {
             let artist = JSON.parse(body).resultsPage.results.artist[0]; // take the first artist
             callback(null, artist);
         } else {
-            console.log("No artist of that name could be found.")
             let err = true;
             callback(err);
         } 

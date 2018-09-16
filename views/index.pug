@@ -1,6 +1,6 @@
 extends layout
 
-//- WHEN UPDATED, UPDATE THE JS EVENT CODE TOO.
+//- When updated, update the Javascript event code too
 mixin drawevent(event)
   - var venue = event.venue.id;
   - var eventId = event.id;
@@ -37,7 +37,9 @@ block links
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment-range/4.0.1/moment-range.js"></script>
   link(rel='stylesheet', href='/stylesheets/style.css')
-  script(src="/javascripts/script.js") 
+  script(src="/javascripts/dom.js") 
+  script(src="/javascripts/map.js") 
+  script(src="/javascripts/eventmodal.js") 
 
 
 block search
@@ -65,28 +67,7 @@ block map
   script.
     function initMap() {
       let locations = !{JSON.stringify(locations)};
-
-      var myLatLng = {lat: 0, lng: 15};
-      var map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 3,
-        center: myLatLng
-      });
-      // Get the map to client side
-      getMap(map);
-      let markers = [];
-      // Add the markers to the map
-      addMarkers(map, markers, locations);
-      // Add the listener to update side bar as bounds change
-      mapListener(map, markers);
-      // Get the markers
-      getMarkers(markers);
-
-      var centerControlDiv = document.createElement('div');
-      var centerControl = new CenterControl(centerControlDiv, map);
-
-      centerControlDiv.index = 1;
-      map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerControlDiv);
-
+      generateMap(locations);
       }
   script(async="", defer="", src='https://maps.googleapis.com/maps/api/js?key=AIzaSyA9-HHJhzau_xzMF_1rMQm3YiC0xDvzKxU&callback=initMap')
 
